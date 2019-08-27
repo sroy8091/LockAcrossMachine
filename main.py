@@ -1,11 +1,9 @@
 import aerospike
 import time
-import sys
 
 
-# put max_retries also
 # if some owner is acquiring the lock should we reset the ttl?
-# write release logic
+
 
 class LoxAM:
     def __init__(self, lock_string, owner, db_backend=None, timeout=60, retry=5, max_retries=1, thread=1):
@@ -61,10 +59,6 @@ class LoxAM:
             print(type(e))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # put the release logic here either deleting the record or updating the record, require discussion
-        # delete as per discussion
-        # delete only if he is owner and also only if key is present
-        # or else check ttl
         self.release()
         self.client.close()
         print("Exiting context for thread", self.thread)

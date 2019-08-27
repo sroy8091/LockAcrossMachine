@@ -3,7 +3,7 @@ import threading
 import time
 
 
-class SampleContext():
+class SampleContext:
     def __init__(self, name):
         self.name = name
 
@@ -27,31 +27,6 @@ def func(i):
         time.sleep(5)
 
     print("End of func")
-
-
-# class Celsius(object):
-#     def __init__(self, value=0.0):
-#         print(type(value))
-#         self.value = float(value)
-#
-#     def __get__(self, instance, owner):
-#         print(instance)
-#         print(owner)
-#         return self.value
-#
-#     def __set__(self, instance, value):
-#         print(instance)
-#         print(value)
-#         self.value = float(value)
-#
-#     def __delete__(self, instance):
-#         pass
-#
-#
-# class Temperature(object):
-#     celsius = Celsius()
-
-# t = Temperature()
 
 
 def main(i):
