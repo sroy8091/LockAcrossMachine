@@ -46,23 +46,25 @@ class LoxAM:
             self.max_retries -= 1
         if locked:
             return
-        raise Exception("Unable to acquire lock for thread{}".format(self.thread))
+        raise Exception("Unable to acquire lock for thread {}".format(self.thread))
 
     def release(self):
-        pass
+        try:
+            (key, metadata, record) = self.client.get(self.key)
+            if key and record.get("owner") == self.owner:
+                self.client.remove(self.key)
+                print("Lock released for thread {} and key{}".format(self.thread, self.key))
+        except aerospike.exception.RecordNotFound:
+            pass
+        except Exception as e:
+            print(self.key)
+            print(type(e))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # put the release logic here either deleting the record or updating the record, require discussion
         # delete as per discussion
         # delete only if he is owner and also only if key is present
         # or else check ttl
-        try:
-            self.client.remove(self.key)
-            print("Lock released for thread {} and key{}".format(self.thread, self.key))
-        except aerospike.exception.RecordNotFound:
-            pass
-        except Exception as e:
-            print(self.key)
-            print(type(e))
+        self.release()
         self.client.close()
         print("Exiting context for thread", self.thread)
