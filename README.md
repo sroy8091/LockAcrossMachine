@@ -7,7 +7,7 @@ Override the config according to your system
 By default it is
 ```json
 {
-    "hosts"': [("127.0.0.1", 3000)]
+    "hosts": [("127.0.0.1", 3000)]
 }
 ```
 We have to register the udf to use this module
