@@ -2,39 +2,34 @@
 test file to test the LoxAM by spawning multiple threads and trying to lock using same string
 """
 from main import LoxAM
-import threading
+from multiprocessing import Process, current_process
 import time
 
 
-def func(i):
-    print("This is the thread", i)
-    with LoxAM("Sumit", i) as sc:
+def func():
+    print("This is the process ", current_process().name)
+    with LoxAM("Sumit", current_process().name) as sc:
         sc.acquire()
-        print("Do something after getting lock for thread {}".format(i))
+        print("Do something after getting lock for process {}".format(current_process().name))
         time.sleep(5)
 
     print("End of func")
 
 
 def main(i):
-    global x
-    x = 0
 
-    print("This is iteration", i)
-    t1 = threading.Thread(target=func, args=[1])
-    time.sleep(10)
-    t2 = threading.Thread(target=func, args=[2])
-
-    t1.start()
-    t2.start()
-
-    t1.join()
-    t2.join()
+    print("This is starting of iteration", i)
+    p1 = Process(target=func, name="Process - 1")
+    p2 = Process(target=func, name="Process - 2")
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+    print("This is end of iteration", i)
 
 
 if __name__ == "__main__":
     for i in range(2):
         main(i)
-        print("x = {1} after Iteration {0}".format(i, x))
 
     # func(1)

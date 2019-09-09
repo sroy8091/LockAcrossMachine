@@ -1,7 +1,7 @@
 import aerospike
 import time
 import logging
-logging.basicConfig(level=logging.DEBUG, format='[%(thread)d] - %(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='[%(process)d] - %(asctime)s - %(levelname)s - %(message)s')
 
 # if some owner is acquiring the lock should we reset the ttl?
 
