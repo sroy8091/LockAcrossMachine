@@ -1,12 +1,16 @@
 import aerospike
 import time
-
+import logging
+logging.basicConfig(level=logging.DEBUG, format='[%(thread)d] - %(asctime)s - %(levelname)s - %(message)s')
 
 # if some owner is acquiring the lock should we reset the ttl?
 
 
 class LoxAM:
-    def __init__(self, lock_string, owner, db_backend=None, timeout=60, retry=5, max_retries=1, thread=1):
+    """
+    A custom context manager to manage locks accross distributed machines using aerospike
+    """
+    def __init__(self, lock_string, owner, db_backend=None, timeout=60, retry=5, max_retries=1):
         self.lock_string = lock_string
         self.db_backend = db_backend
         self.owner = owner
@@ -17,15 +21,14 @@ class LoxAM:
         self.config = {
             'hosts': [('127.0.0.1', 3000)]
         }
-        self.thread = thread
 
     def __enter__(self):
         try:
             self.client = aerospike.client(self.config).connect()
             # self.client.udf_put("atomicity.lua")
-            print("Trying to get lock for Thread ", self.thread)
+            logging.info("Trying to get lock")
         except Exception as e:
-            print("failed to connect to the cluster with", self.config['hosts'], e)
+            logging.debug("Failed to connect to the cluster with {}\n {}".format(self.config['hosts'], e))
         return self
 
     def acquire(self):
@@ -34,24 +37,24 @@ class LoxAM:
             try:
                 locked = self.client.apply(self.key, "atomicity", "get_or_create", [{'owner': self.owner}])
                 if locked:
-                    print("Acquired lock for lock_string {} for thread {}".format(self.key, self.thread))
+                    logging.info("Acquired lock for lock_string {}".format(self.key))
                 else:
-                    print("Already acquired by someone else. Retrying in {} for thread {}".format(self.retry, self.thread))
+                    logging.info("Already acquired by someone else. Retrying in {}".format(self.retry))
             except Exception as e:
-                print("error while acquiring lock: {0}".format(e))
+                logging.exception("Error while acquiring lock: {}".format(e))
                 locked = True
             time.sleep(self.retry)
             self.max_retries -= 1
         if locked:
             return
-        raise Exception("Unable to acquire lock for thread {}".format(self.thread))
+        raise Exception("Unable to acquire lock")
 
     def release(self):
         try:
             (key, metadata, record) = self.client.get(self.key)
             if key and record.get("owner") == self.owner:
                 self.client.remove(self.key)
-                print("Lock released for thread {} and key{}".format(self.thread, self.key))
+                logging.info("Lock released and key{}".format(self.key))
         except aerospike.exception.RecordNotFound:
             pass
         except Exception as e:
@@ -61,4 +64,4 @@ class LoxAM:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.release()
         self.client.close()
-        print("Exiting context for thread", self.thread)
+        logging.info("Exiting context")
