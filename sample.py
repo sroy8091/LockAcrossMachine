@@ -1,13 +1,16 @@
+"""
+test file to test the LoxAM by spawning multiple threads and trying to lock using same string
+"""
 from main import LoxAM
 import threading
 import time
 
 
 def func(i):
-    print("this is the thread", i)
-    with LoxAM("Sumit", i, thread=i) as sc:
+    print("This is the thread", i)
+    with LoxAM("Sumit", i) as sc:
         sc.acquire()
-        print("do something after getting lock for thread {}".format(i))
+        print("Do something after getting lock for thread {}".format(i))
         time.sleep(5)
 
     print("End of func")
@@ -17,7 +20,7 @@ def main(i):
     global x
     x = 0
 
-    print("this is iteration", i)
+    print("This is iteration", i)
     t1 = threading.Thread(target=func, args=[1])
     time.sleep(10)
     t2 = threading.Thread(target=func, args=[2])
