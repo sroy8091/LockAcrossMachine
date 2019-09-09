@@ -58,8 +58,8 @@ class LoxAM:
         except aerospike.exception.RecordNotFound:
             pass
         except Exception as e:
-            print(self.key)
-            print(type(e))
+            logging.exception(self.key)
+            logging.exception(e)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.release()
